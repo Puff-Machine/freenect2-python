@@ -24,9 +24,20 @@ before_script:
   - python3 -m venv venv
   - source venv/bin/activate
 
-sphinx-html-docs:
+build:
   stage: build
   script:
+    - export "PKG_CONFIG_PATH=$CI_PROJECT_DIR/.local/lib/pkgconfig"
+    - export "LD_LIBRARY_PATH=$CI_PROJECT_DIR/.local/lib"
+    - apt-get update
+    - apt-get install libusb-1.0-0-dev libjpeg-dev cmake g++
+    - git clone --depth=1 https://github.com/OpenKinect/libfreenect2
+    - cd libfreenect2
+    - mkdir build
+    - cd build
+    - cmake -DCMAKE_INSTALL_PREFIX=$CI_PROJECT_DIR/.local ..
+    - make all install
+    - cd ../..
     - pip install --upgrade pip setuptools wheel
     - pip install numpy sphinx sphinx-rtd-theme tox
     - tox
