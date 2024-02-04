@@ -27,6 +27,7 @@ before_script:
 sphinx-html-docs:
   stage: build
   script:
+    - pip install --upgrade pip setuptools wheel
     - pip install numpy sphinx sphinx-rtd-theme tox
     - tox
   artifacts:
