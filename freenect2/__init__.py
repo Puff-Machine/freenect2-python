@@ -297,6 +297,46 @@ class Device(object):
         handle, fl = _callable_to_frame_listener(value)
         lib.freenect2_device_set_ir_and_depth_frame_listener(self._c_object, fl)
         self._ir_and_depth_frame_listener = value, handle, fl
+    
+    def set_color_auto_exposure(self, exposure_compensation: float = 0):
+        """Sets the RGB camera to fully automatic exposure setting.
+        Exposure compensation: negative value gives an underexposed image,
+        positive gives an overexposed image.
+
+        Args:
+            exposure_compensation (float): Exposure compensation, range [-2.0, 2.0]
+        """
+        lib.freenect2_device_set_color_auto_exposure(self._c_object, exposure_compensation)
+
+    def set_color_semi_auto_exposure(self, pseudo_exposure_time_ms: float):
+        """Sets a flicker-free exposure time of the RGB camera in pseudo-ms, value in range [0.0, 640] ms.
+        The actual frame integration time is set to a multiple of fluorescent light period
+        that is shorter than the requested time e.g. requesting 16 ms will set 10 ms
+        in Australia (100Hz light flicker), 8.33 ms in USA (120Hz light flicker).
+        The gain is automatically set to compensate for the reduced integration time,
+        as if the gain was set to 1.0 and the integration time was the requested value.
+
+        Requesting less than a single fluorescent light period will set the integration time
+        to the requested value, so the image brightness will flicker.
+
+        To set the shortest non-flickering integration period for any country, simply set
+        a pseudo-exposure time of between (10.0, 16.667) ms, which will automatically drop
+        the integration time to 10 or 8.3 ms depending on country, while setting the analog
+        gain control to a brighter value.
+
+        Args:
+            pseudo_exposure_time_ms (float): Pseudo-exposure time in milliseconds, range (0.0, 66.0+]
+        """
+        lib.freenect2_device_set_color_semi_auto_exposure(self._c_object, pseudo_exposure_time_ms)
+    
+    def set_color_manual_exposure(self, integration_time_ms: float, analog_gain: float):
+        """Manually set true exposure time and analog gain of the RGB camera.
+
+        Args:
+            integration_time_ms (float): True shutter time in milliseconds, range (0.0, 66.0]
+            analog_gain (float): Analog gain, range [1.0, 4.0]
+        """
+        lib.freenect2_device_set_color_manual_exposure(self._c_object, integration_time_ms, analog_gain)
 
     @contextmanager
     def running(self, *args, **kwargs):

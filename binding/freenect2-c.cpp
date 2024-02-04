@@ -112,6 +112,27 @@ static ColorCameraParams freenect2_device_get_color_camera_params(
     return device->getColorCameraParams();
 }
 
+static void freenect2_device_set_color_auto_exposure(
+    Freenect2DeviceRef device_ref, float exposure_compensation)
+{
+    Freenect2Device* device = reinterpret_cast<Freenect2Device*>(device_ref);
+    device->setColorAutoExposure(exposure_compensation);
+}
+
+static void freenect2_device_set_color_semi_auto_exposure(
+    Freenect2DeviceRef device_ref, float pseudo_exposure_time_ms)
+{
+    Freenect2Device* device = reinterpret_cast<Freenect2Device*>(device_ref);
+    device->setColorSemiAutoExposure(pseudo_exposure_time_ms);
+}
+
+static void freenect2_device_set_color_manual_exposure(
+    Freenect2DeviceRef device_ref, float integration_time_ms, float analog_gain)
+{
+    Freenect2Device* device = reinterpret_cast<Freenect2Device*>(device_ref);
+    device->setColorManualExposure(integration_time_ms, analog_gain);
+}
+
 typedef int (*Freenect2FrameListenerFunc) (
     Freenect2FrameType type, Freenect2FrameRef frame, void *user_data);
 
