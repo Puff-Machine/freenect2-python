@@ -1,8 +1,8 @@
 freenect2: Python bindings to libfreenect2
 ==========================================
 
-.. image:: https://travis-ci.org/rjw57/freenect2-python.svg?branch=master
-    :target: https://travis-ci.org/rjw57/freenect2-python
+.. image:: https://gitlab.hob-co.uk/puff/freenect2-python/badges/master/pipeline.svg?ignore_skipped=true&key_text=build&key_width=45
+    :target: https://gitlab.hob-co.uk/puff/freenect2-python/-/pipelines
 .. image:: https://zenodo.org/badge/85711795.svg
     :target: https://zenodo.org/badge/latestdoi/85711795
 
@@ -35,5 +35,5 @@ Getting started
 ---------------
 
 Installation instructions and reference documentation are available on the
-associated `documentation <https://rjw57.github.io/freenect2-python/>`_ pages.
+associated `documentation <https://puff.pages.hob-co.uk/freenect2-python/>`_ pages.
 
