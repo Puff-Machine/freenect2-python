@@ -41,10 +41,23 @@ build:
     - pip install --upgrade pip setuptools wheel
     - pip install numpy sphinx sphinx-rtd-theme tox
     - tox
+    - python3 setup.py sdist bdist_wheel
   artifacts:
     paths:
       - .tox/doc/build/doc
+      - dist
     expire_in: 1 day
+
+upload_package:
+  stage: deploy
+  allow_failure: true
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      changes:
+        - setup.py
+  script:
+    - pip install twine
+    - TWINE_PASSWORD=${CI_JOB_TOKEN} TWINE_USERNAME=gitlab-ci-token python3 -m twine upload --repository-url https://gitlab.hob-co.uk/api/v4/projects/${CI_PROJECT_ID}/packages/pypi dist/*.*
 
 pages:
   stage: deploy
