@@ -30,7 +30,7 @@ build:
     - export "PKG_CONFIG_PATH=$CI_PROJECT_DIR/.local/lib/pkgconfig"
     - export "LD_LIBRARY_PATH=$CI_PROJECT_DIR/.local/lib"
     - apt-get update
-    - apt-get -y install libusb-1.0-0-dev libjpeg-dev cmake g++
+    - apt-get -y install libusb-1.0-0-dev libjpeg-dev cmake g++ libturbojpeg0-dev
     - git clone --depth=1 https://github.com/OpenKinect/libfreenect2
     - cd libfreenect2
     - mkdir build
