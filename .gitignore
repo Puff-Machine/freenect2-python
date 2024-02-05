@@ -12,3 +12,4 @@ output.pcd
 dist
 .tox
 freenect2/_freenect2.*
+/typings/

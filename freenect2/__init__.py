@@ -100,7 +100,7 @@ class QueueFrameListener(object):
         except Full:
             return
 
-    def get(self, timeout=False) -> Frame:
+    def get(self, timeout=False) -> "Frame":
         return self.queue.get(True, timeout)
 
 class ColorCameraParams(object):
@@ -229,7 +229,7 @@ class Device(object):
         """Close the device and free any associated resources."""
         lib.freenect2_device_close(self._c_object)
 
-    def get_next_frame(self, timeout=None) -> tuple[FrameType, Frame]:
+    def get_next_frame(self, timeout=None) -> "tuple[FrameType, Frame]":
         """Get the next frame type and frame from the device.
 
         Args:
