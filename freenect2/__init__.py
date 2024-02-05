@@ -2,7 +2,7 @@ from __future__ import print_function
 
 from contextlib import contextmanager
 import enum
-from queue import Queue, Empty
+from queue import Queue, Empty, Full
 
 import numpy as np
 from PIL import Image
@@ -95,9 +95,12 @@ class QueueFrameListener(object):
         self.queue = Queue(maxsize=maxsize)
 
     def __call__(self, frame_type, frame):
-        self.queue.put_nowait((frame_type, frame))
+        try:
+            self.queue.put_nowait((frame_type, frame))
+        except Full:
+            return
 
-    def get(self, timeout=False):
+    def get(self, timeout=False) -> Frame:
         return self.queue.get(True, timeout)
 
 class ColorCameraParams(object):
@@ -226,7 +229,7 @@ class Device(object):
         """Close the device and free any associated resources."""
         lib.freenect2_device_close(self._c_object)
 
-    def get_next_frame(self, timeout=None):
+    def get_next_frame(self, timeout=None) -> tuple[FrameType, Frame]:
         """Get the next frame type and frame from the device.
 
         Args:
@@ -428,31 +431,31 @@ class Frame(object):
             raise NotImplementedError()
 
     @property
-    def width(self):
+    def width(self) -> int:
         """Length of a line (in pixels)"""
         return lib.freenect2_frame_get_width(self._c_object)
 
     @width.setter
-    def width(self, value):
+    def width(self, value: int):
         lib.freenect2_frame_set_width(self._c_object, value)
 
     @property
-    def height(self):
+    def height(self) -> int:
         """Number of lines in the frame"""
         return lib.freenect2_frame_get_height(self._c_object)
 
     @height.setter
-    def height(self, value):
+    def height(self, value: int):
         lib.freenect2_frame_set_height(self._c_object, value)
 
     @property
-    def bytes_per_pixel(self):
+    def bytes_per_pixel(self) -> int:
         """Number of bytes in a pixel. If :py:attr:`.format` is
         :py:attr:`.FrameFormat.Raw`, this is the buffer size."""
         return lib.freenect2_frame_get_bytes_per_pixel(self._c_object)
 
     @bytes_per_pixel.setter
-    def bytes_per_pixel(self, value):
+    def bytes_per_pixel(self, value: int):
         lib.freenect2_frame_set_bytes_per_pixel(self._c_object, value)
 
     @property
@@ -463,67 +466,67 @@ class Frame(object):
             data_ptr, self.width * self.height * self.bytes_per_pixel)
 
     @property
-    def timestamp(self):
+    def timestamp(self) -> int:
         """Unit: roughly or exactly 0.1 millisecond"""
         return lib.freenect2_frame_get_timestamp(self._c_object)
 
     @timestamp.setter
-    def timestamp(self, value):
+    def timestamp(self, value: int):
         lib.freenect2_frame_set_timestamp(self._c_object, value)
 
     @property
-    def sequence(self):
+    def sequence(self) -> int:
         """Increasing frame sequence number"""
         return lib.freenect2_frame_get_sequence(self._c_object)
 
     @sequence.setter
-    def sequence(self, value):
+    def sequence(self, value: int):
         lib.freenect2_frame_set_sequence(self._c_object, value)
 
     @property
-    def exposure(self):
+    def exposure(self) -> float:
         """From 0.5 (very bright) to ~60.0 (fully covered)"""
         return lib.freenect2_frame_get_exposure(self._c_object)
 
     @exposure.setter
-    def exposure(self, value):
+    def exposure(self, value: float):
         lib.freenect2_frame_set_exposure(self._c_object, value)
 
     @property
-    def gain(self):
+    def gain(self) -> float:
         """From 1.0 (bright) to 1.5 (covered)"""
         return lib.freenect2_frame_get_gain(self._c_object)
 
     @gain.setter
-    def gain(self, value):
+    def gain(self, value: float):
         lib.freenect2_frame_set_gain(self._c_object, value)
 
     @property
-    def gamma(self):
+    def gamma(self) -> float:
         """From 1.0 (bright) to 6.4 (covered)"""
         return lib.freenect2_frame_get_gamma(self._c_object)
 
     @gamma.setter
-    def gamma(self, value):
+    def gamma(self, value: float):
         lib.freenect2_frame_set_gamma(self._c_object, value)
 
     @property
-    def status(self):
+    def status(self) -> int:
         """zero if ok; non-zero for errors"""
         return lib.freenect2_frame_get_status(self._c_object)
 
     @status.setter
-    def status(self, value):
+    def status(self, value: int):
         lib.freenect2_frame_set_status(self._c_object, value)
 
     @property
-    def format(self):
+    def format(self) -> FrameFormat:
         """Byte format. Informative only, doesn't indicate errors. An instance
         of :py:class:`.FrameFormat`."""
         return FrameFormat(lib.freenect2_frame_get_format(self._c_object))
 
     @format.setter
-    def format(self, value):
+    def format(self, value: FrameFormat):
         lib.freenect2_frame_set_format(self._c_object, value.value)
 
     def __repr__(self):
@@ -539,9 +542,9 @@ class Registration(object):
     :py:attr:`.Device.registration` attribute.
 
     """
-    def __init__(self, depth_p, rgb_p):
-        self.depth_p = depth_p
-        self.rgb_p = rgb_p
+    def __init__(self, depth_p: Frame, rgb_p: Frame):
+        self.depth_p: Frame = depth_p
+        self.rgb_p: Frame = rgb_p
         self._c_object = ffi.gc(
             lib.freenect2_registration_create(depth_p, rgb_p),
             lib.freenect2_registration_dispose)
@@ -619,7 +622,7 @@ class Registration(object):
         )
         return xs, ys, -zs
 
-    def get_points_xyz_array(self, undistorted):
+    def get_points_xyz_array(self, undistorted) -> np.ndarray[np.float32]:
         """Return a 3D array of x, y, z points for each point in an undistorted
         frame. Invalid points are Nan-ed.
 
@@ -635,7 +638,7 @@ class Registration(object):
             np.arange(undistorted.width), np.arange(undistorted.height))
         return np.dstack(self.get_points_xyz(undistorted, rows, cols))
 
-    def get_big_points_xyz_array(self, big_depth):
+    def get_big_points_xyz_array(self, big_depth) -> np.ndarray[np.float32]:
         """Like :py:meth:`.get_points_xyz_array` but operates on the "big" depth
         map which can be returned from :py:meth:`.apply`.
 
